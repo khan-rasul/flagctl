@@ -1,0 +1,196 @@
+{
+  "$id": "https://flagd.dev/schema/v0/targeting.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "flagd Targeting",
+  "description": "Defines targeting logic for flagd; a extension of JSONLogic, including purpose-built feature-flagging operations.",
+  "type": "object",
+  "anyOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {}
+    },
+    {
+      "$ref": "#/definitions/anyRule"
+    }
+  ],
+  "definitions": {
+    "primitive": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "boolean" },
+        { "type": "number" },
+        { "type": "string" },
+        { "type": "array" }
+      ]
+    },
+    "varRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "var": {}
+      }
+    },
+    "missingRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "missing": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "missingSomeRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "missing_some": {
+          "minItems": 2,
+          "maxItems": 2,
+          "type": "array"
+        }
+      }
+    },
+    "binaryOrTernaryOp": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 3
+    },
+    "binaryOrTernaryRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "substr": { "$ref": "#/definitions/binaryOrTernaryOp" },
+        "<": { "$ref": "#/definitions/binaryOrTernaryOp" },
+        "<=": { "$ref": "#/definitions/binaryOrTernaryOp" }
+      }
+    },
+    "binaryOp": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "binaryRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "if": {},
+        "==": { "$ref": "#/definitions/binaryOp" },
+        "===": { "$ref": "#/definitions/binaryOp" },
+        "!=": { "$ref": "#/definitions/binaryOp" },
+        "!==": { "$ref": "#/definitions/binaryOp" },
+        ">": { "$ref": "#/definitions/binaryOp" },
+        ">=": { "$ref": "#/definitions/binaryOp" },
+        "%": { "$ref": "#/definitions/binaryOp" },
+        "/": { "$ref": "#/definitions/binaryOp" },
+        "map": { "$ref": "#/definitions/binaryOp" },
+        "filter": { "$ref": "#/definitions/binaryOp" },
+        "all": { "$ref": "#/definitions/binaryOp" },
+        "none": { "$ref": "#/definitions/binaryOp" },
+        "some": { "$ref": "#/definitions/binaryOp" },
+        "in": { "$ref": "#/definitions/binaryOp" }
+      }
+    },
+    "reduceRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "reduce": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3
+        }
+      }
+    },
+    "associativeOp": {
+      "type": "array",
+      "minItems": 2
+    },
+    "associativeRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "*": { "$ref": "#/definitions/associativeOp" }
+      }
+    },
+    "unaryOp": {},
+    "unaryRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "!": { "$ref": "#/definitions/unaryOp" },
+        "!!": { "$ref": "#/definitions/unaryOp" }
+      }
+    },
+    "variadicOp": {
+      "type": "array",
+      "minItems": 1
+    },
+    "variadicRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "or": { "$ref": "#/definitions/variadicOp" },
+        "and": { "$ref": "#/definitions/variadicOp" },
+        "+": { "$ref": "#/definitions/variadicOp" },
+        "-": { "$ref": "#/definitions/variadicOp" },
+        "max": { "$ref": "#/definitions/variadicOp" },
+        "min": { "$ref": "#/definitions/variadicOp" },
+        "merge": { "$ref": "#/definitions/variadicOp" },
+        "cat": { "$ref": "#/definitions/variadicOp" }
+      }
+    },
+    "stringCompareArgs": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "stringCompareRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "starts_with": { "$ref": "#/definitions/stringCompareArgs" },
+        "ends_with": { "$ref": "#/definitions/stringCompareArgs" }
+      }
+    },
+    "ruleSemVer": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "sem_ver": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3
+        }
+      }
+    },
+    "fractionalRule": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fractional": {}
+      }
+    },
+    "reference": {
+      "type": "object"
+    },
+    "args": {},
+    "anyRule": {
+      "anyOf": [
+        { "$ref": "#/definitions/varRule" },
+        { "$ref": "#/definitions/missingRule" },
+        { "$ref": "#/definitions/missingSomeRule" },
+        { "$ref": "#/definitions/binaryRule" },
+        { "$ref": "#/definitions/binaryOrTernaryRule" },
+        { "$ref": "#/definitions/associativeRule" },
+        { "$ref": "#/definitions/unaryRule" },
+        { "$ref": "#/definitions/variadicRule" },
+        { "$ref": "#/definitions/reduceRule" },
+        { "$ref": "#/definitions/stringCompareRule" },
+        { "$ref": "#/definitions/ruleSemVer" },
+        { "$ref": "#/definitions/fractionalRule" }
+      ]
+    }
+  }
+}
