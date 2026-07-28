@@ -1,23 +1,38 @@
-# `flagctl` — Declarative Feature Flag Management CLI
+<div align="center">
 
-`flagctl` is a dedicated, open-standard command-line tool for managing **flagd** feature flag configurations (`flags.json` / `flags.yaml`) stored directly in Git version control.
+# `flagctl`
 
-It provides developer-friendly commands to create, launch, target, update, deprecate, delete, validate, audit, and generate strongly-typed code accessors for your feature flags while guaranteeing strict conformance to the versioned `flagd` schema (`https://flagd.dev/schema/v0/flags.json`).
+### Declarative GitOps Feature Flag Management CLI for **flagd** & **OpenFeature**
+
+[![Go Version](https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat&logo=go)](https://go.dev/)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-0.0.2-green.svg)](CHANGELOG.md)
+[![OpenFeature Compatible](https://img.shields.io/badge/OpenFeature-Compatible-7B2CBF.svg)](https://openfeature.dev/)
+[![Tests](https://img.shields.io/badge/tests-passing-brightgreen.svg)](https://github.com/khan-rasul/flagctl)
+
+<br />
+
+![flagctl Demo](demo.gif)
+
+</div>
 
 ---
 
-## Key Features & Architecture
+## ⚡ Why `flagctl`?
 
-* ⚡ **GitOps Native:** Manage flag definitions along with application source code in Git.
-* 🔒 **Immutable Flag Keys:** Prevents telemetry fragmentation and runtime errors by keeping flag keys immutable.
-* 🚀 **Progressive Feature Launches (`flagctl launch`):** Ramp feature percentage up/down (`flagctl launch ramp --percent 50`), configure multi-variant splits, or create cohort-specific progressive launches. *(Alias: `rollout`)*.
-* 🎯 **Ordered Rule Targeting (`flagctl target`):** Configure Allowlists, Denylists, SemVer version gates, and segment rules with automatic Tier-Based priority ordering.
-* 🪣 **Spec-Compliant Bucketing:** Explicit Bucket ID support (`{ "var": "<bucketId>" }`, defaulting to `userId`, customizable via `--bucket-by`).
-* ❄️ **Safe 2-Stage Deprecation:** `flagctl deprecate` tags metadata and freezes edits while keeping `state: ENABLED` so production applications never suffer `FLAG_NOT_FOUND` runtime crashes.
-* 🔍 **Code-Aware Deletion Guard:** `flagctl delete` scans application source code and blocks flag removal if active code references still exist.
-* 🩺 **Codebase Auditor:** `flagctl audit` scans source code for missing flags, dead/orphaned flags, and uncleaned deprecated flags.
-* 🧬 **Strongly-Typed Accessor Generation:** `flagctl generate` produces type-safe wrapper accessors for TypeScript and Go for 100% compile-time flag safety.
-* 🌐 **Offline Schema Registry:** Embedded versioned JSON schemas (`v0`) enable validation without internet access.
+Managing `flagd` feature flag configurations (`flags.json` / `flags.yaml`) directly in Git is often manual, error-prone, and risky.
+
+`flagctl` brings **GitOps ergonomics** to feature flags:
+
+* **🔒 Immutable Flag Keys:** Prevents telemetry fragmentation and runtime crashes.
+* **🚀 Progressive Feature Launches:** Ramp percentage splits (`flagctl launch ramp --percent 50`) with auto-balance and cohort support. *(Alias: `rollout`)*.
+* **🎯 Ordered Rule Targeting:** Configure Allowlists, Denylists, and SemVer version gates with automatic Tier-Based priority ordering.
+* **🪣 Spec-Compliant Bucketing:** Explicit Bucket ID support (`{ "var": "<bucketId>" }`, defaulting to `userId`, customizable via `--bucket-by`).
+* **❄️ Safe 2-Stage Deprecation:** Tags metadata and freezes edits while keeping `state: ENABLED` so production applications never suffer `FLAG_NOT_FOUND` runtime crashes.
+* **🛡 Code-Aware Deletion Guard:** Automatically scans application source code and blocks flag removal if active code references still exist.
+* **🩺 Codebase Auditor:** Scans source code for missing flags, dead/orphaned flags, and uncleaned deprecated flags (`flagctl audit`).
+* **🧬 Type-Safe Accessors:** Generates strongly-typed wrapper accessors for **TypeScript** and **Go** for 100% compile-time flag safety.
+* **🌐 Offline Schema Registry:** Embedded versioned JSON schemas (`v0`) enable offline validation without internet access.
 
 ---
 
@@ -48,7 +63,7 @@ $ flagctl init --language typescript
 ```
 
 ### 2. Create a Feature Flag
-Create a typed feature flag:
+Create a typed feature flag (automatically generates type-safe accessors):
 ```bash
 $ flagctl create --key new-checkout-flow --type boolean --default on --description "New checkout UI"
 
@@ -133,4 +148,4 @@ $ flagctl validate
 
 ## License
 
-Apache License 2.0
+[Apache License 2.0](LICENSE)
