@@ -8,7 +8,9 @@ Set FontSize 15
 Set Width 1200
 Set Height 700
 Set Padding 20
-Set CornerRadius 10
+Set Margin 20
+Set MarginFill "#1e1e2e"
+Set WindowBar "MacOS"
 Set TypingSpeed 60ms
 
 # Setup temporary demo workspace
