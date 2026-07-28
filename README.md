@@ -2,7 +2,7 @@
 
 `flagctl` is a dedicated, open-standard command-line tool for managing **flagd** feature flag configurations (`flags.json` / `flags.yaml`) stored directly in Git version control.
 
-It provides developer-friendly commands to create, rollout, target, update, deprecate, delete, validate, audit, and generate strongly-typed code accessors for your feature flags while guaranteeing strict conformance to the versioned `flagd` schema (`https://flagd.dev/schema/v0/flags.json`).
+It provides developer-friendly commands to create, launch, target, update, deprecate, delete, validate, audit, and generate strongly-typed code accessors for your feature flags while guaranteeing strict conformance to the versioned `flagd` schema (`https://flagd.dev/schema/v0/flags.json`).
 
 ---
 
@@ -10,9 +10,9 @@ It provides developer-friendly commands to create, rollout, target, update, depr
 
 * ⚡ **GitOps Native:** Manage flag definitions along with application source code in Git.
 * 🔒 **Immutable Flag Keys:** Prevents telemetry fragmentation and runtime errors by keeping flag keys immutable.
-* 🛡 **Idempotent Initialization:** Running `flagctl init` safely sets up or updates `.flagctl.json` without overwriting existing flag definitions.
-* 📊 **Progressive Rollouts:** Configure percentage splits (`flagctl rollout`) with 100% sum validation and automatic split balancing.
-* 🎯 **Attribute & Segment Targeting:** Easily generate JsonLogic rules for targeted user segments (`flagctl target`).
+* 🚀 **Progressive Feature Launches (`flagctl launch`):** Ramp feature percentage up/down (`flagctl launch ramp --percent 50`), configure multi-variant splits, or create cohort-specific progressive launches. *(Alias: `rollout`)*.
+* 🎯 **Ordered Rule Targeting (`flagctl target`):** Configure Allowlists, Denylists, SemVer version gates, and segment rules with automatic Tier-Based priority ordering.
+* 🪣 **Spec-Compliant Bucketing:** Explicit Bucket ID support (`{ "var": "<bucketId>" }`, defaulting to `userId`, customizable via `--bucket-by`).
 * ❄️ **Safe 2-Stage Deprecation:** `flagctl deprecate` tags metadata and freezes edits while keeping `state: ENABLED` so production applications never suffer `FLAG_NOT_FOUND` runtime crashes.
 * 🔍 **Code-Aware Deletion Guard:** `flagctl delete` scans application source code and blocks flag removal if active code references still exist.
 * 🩺 **Codebase Auditor:** `flagctl audit` scans source code for missing flags, dead/orphaned flags, and uncleaned deprecated flags.
@@ -56,23 +56,38 @@ $ flagctl create --key new-checkout-flow --type boolean --default on --descripti
 ✔ Regenerated typed accessors at src/flags.gen.ts
 ```
 
-### 3. Configure Progressive Rollout
-Set a 50/50 percentage rollout:
+### 3. Add Rule Targeting (Allowlist / Denylist)
+Add an Allowlist rule for company employees and a Denylist rule for competitors:
 ```bash
-$ flagctl rollout --key new-checkout-flow --splits "on=50,off=50" --bucket-by "userId"
+# Allowlist rule (company employees get 'on')
+$ flagctl target add --key new-checkout-flow --attribute "email" --operator "endsWith" --value "@company.com" --variant "on"
 
-✔ Successfully updated rollout for 'new-checkout-flow' (splits: on=50,off=50, bucketBy: userId)
+# Denylist rule (competitors get 'off', inserted at top of rule chain)
+$ flagctl target add --key new-checkout-flow --attribute "email" --operator "endsWith" --value "@competitor.com" --variant "off" --top
 ```
 
-### 4. Target Specific User Segments
-Serve variant `"on"` to company employees:
+### 4. Progressive Feature Launch & Ramping
+Start a 20% canary launch, then ramp it up to 50%:
 ```bash
-$ flagctl target --key new-checkout-flow --attribute "email" --operator "endsWith" --value "@company.com" --variant "on"
+# Start canary launch at 20%
+$ flagctl launch add --key new-checkout-flow --percent 20 --variant "on"
 
-✔ Successfully added targeting rule for 'new-checkout-flow'
+# Ramp launch up to 50%
+$ flagctl launch ramp --key new-checkout-flow --percent 50
 ```
 
-### 5. Validate Configuration Against Schema
+### 5. Inspect Active Rules & Launches
+View ordered rule chain and overlap analysis:
+```bash
+$ flagctl target list --key new-checkout-flow
+
+ORDERED TARGETING RULES FOR 'new-checkout-flow' (Default: on):
+  [1] DENYLIST : email endsWith "@competitor.com" -> off
+  [2] ALLOWLIST: email endsWith "@company.com"    -> on
+  [3] LAUNCH   : fractional rollout (fractional)
+```
+
+### 6. Validate Configuration Against Schema
 Validate `flags.json` against embedded `v0/flags.json` schema:
 ```bash
 $ flagctl validate
@@ -80,27 +95,30 @@ $ flagctl validate
 ✔ ./flags.json is valid according to flagd schema v0!
 ```
 
-### 6. Audit Codebase
-Scan application code for missing or orphaned flags:
-```bash
-$ flagctl audit
-
-🔍 Auditing codebase in /path/to/project against flags.json...
-✔ 0 Missing flags (All code calls exist in config)
-✔ 0 Deprecated flags called in code
-✔ 0 Orphaned flags
-```
-
 ---
 
 ## Command Reference
 
+### Launch Commands (`flagctl launch` / `rollout`)
+| Command | Usage | Description |
+| :--- | :--- | :--- |
+| `flagctl launch add` | `flagctl launch add -k key -p 20 -v on` | Adds global or cohort-specific launch ramp. |
+| `flagctl launch list` | `flagctl launch list -k key` | Lists active launches with index numbers & percentages. |
+| `flagctl launch ramp` | `flagctl launch ramp -k key -p 50` | Ramps launch percentage up/down (0% to 100%). |
+| `flagctl launch remove` | `flagctl launch remove -k key -i 1` | Removes a launch ramp by index. |
+
+### Targeting Commands (`flagctl target`)
+| Command | Usage | Description |
+| :--- | :--- | :--- |
+| `flagctl target add` | `flagctl target add -k key -a email -v "@test.com" --variant on` | Adds targeting rule (allowlist, denylist, semver, segment). |
+| `flagctl target list` | `flagctl target list -k key` | Displays ordered rule chain + overlap hints. |
+| `flagctl target remove` | `flagctl target remove -k key -i 1` | Removes a targeting rule by index. |
+
+### Core Management Commands
 | Command | Usage | Description |
 | :--- | :--- | :--- |
 | `flagctl init` | `flagctl init [-f json\|yaml] [-l ts\|go]` | Idempotently initializes `.flagctl.json` and `flags.json`. |
 | `flagctl create` | `flagctl create -k key [-t type] [-d default]` | Creates a new flag definition (boolean, string, number, object). |
-| `flagctl rollout` | `flagctl rollout -k key -s "on=20,off=80"` | Sets percentage rollout splits with sum validation & auto-balance. |
-| `flagctl target` | `flagctl target -k key -a email -v "@test.com"` | Adds JsonLogic attribute-based targeting rule. |
 | `flagctl update` | `flagctl update -k key [-s ENABLED\|DISABLED]` | Updates flag state, default variant, or description. |
 | `flagctl deprecate` | `flagctl deprecate -k key [-r reason]` | Soft-deprecates and freezes a flag (keeps state `ENABLED`). |
 | `flagctl undeprecate` | `flagctl undeprecate -k key` | Un-freezes a deprecated flag. |
@@ -108,42 +126,8 @@ $ flagctl audit
 | `flagctl validate` | `flagctl validate [-f flags.json]` | Validates config against versioned `flagd` JSON schema. |
 | `flagctl list` | `flagctl list` | Displays terminal summary table of all flags and rollouts. |
 | `flagctl audit` | `flagctl audit [--strict]` | Scans codebase for missing, orphaned, or deprecated flags. |
-| `flagctl generate` | `flagctl generate [-l ts\|go] [-o path]` | Generates strongly-typed flag accessor helper code. |
+| `flagctl generate` | `flagctl generate [-l ts\|go] [-o path]` | Generates strongly-typed code accessor helper code. |
 | `flagctl version` | `flagctl version` | Outputs `flagctl` CLI version (`0.0.1`). |
-
----
-
-## GitHub Actions CI/CD Integration
-
-Add `flagctl` to your PR workflow to validate schemas and block PRs with missing/deprecated flag calls:
-
-```yaml
-name: Feature Flag CI Check
-
-on:
-  pull_request:
-    branches: [ main ]
-
-jobs:
-  audit-flags:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.26'
-
-      - name: Install flagctl
-        run: go install github.com/khan-rasul/flagctl@latest
-
-      - name: Validate Flag Config Schema
-        run: flagctl validate
-
-      - name: Audit Codebase Flags
-        run: flagctl audit --strict
-```
 
 ---
 
