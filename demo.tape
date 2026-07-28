@@ -2,7 +2,7 @@
 Output demo.gif
 
 # Terminal Appearance & Styling
-Set Shell "bash"
+Set Shell "fish"
 Set Theme "Catppuccin Macchiato"
 Set FontFamily "JetBrains Mono"
 Set FontSize 15
