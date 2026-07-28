@@ -10,7 +10,7 @@ Set Height 700
 Set Padding 20
 Set Margin 20
 Set MarginFill "#1e1e2e"
-Set WindowBar "MacOS"
+Set WindowBar Colorful
 Set TypingSpeed 60ms
 
 # Setup temporary demo workspace
