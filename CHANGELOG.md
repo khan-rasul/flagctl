@@ -36,7 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.0.1] - 2026-07-28
+## [0.0.1] - 2026-07-27
 
 ### Added
 - **Initial Release of `flagctl` CLI:** Written in Go (`v1.26.5`).

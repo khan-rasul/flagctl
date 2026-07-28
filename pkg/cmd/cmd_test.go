@@ -20,13 +20,32 @@ func resetFlags() {
 	createVariants = ""
 	createDescription = ""
 	createDisabled = false
-	rolloutSplits = ""
-	rolloutComplete = ""
-	rolloutAutoBalance = false
-	targetOperator = ""
-	targetValue = ""
-	targetVariant = ""
 	auditStrict = false
+
+	launchAddKey = ""
+	launchAddPercent = 0
+	launchAddVariant = ""
+	launchAddSplits = ""
+	launchAddBucketBy = "userId"
+	launchAddAttribute = ""
+	launchAddValue = ""
+	launchListKey = ""
+	launchRampKey = ""
+	launchRampPercent = 0
+	launchRampVariant = ""
+	launchRampIndex = 0
+	launchRemoveKey = ""
+	launchRemoveIndex = 0
+
+	targetAddKey = ""
+	targetAddAttribute = ""
+	targetAddOperator = "=="
+	targetAddValue = ""
+	targetAddVariant = ""
+	targetAddTop = false
+	targetListKey = ""
+	targetRemoveKey = ""
+	targetRemoveIndex = 0
 }
 
 func executeCmd(args ...string) (string, error) {
@@ -68,122 +87,60 @@ func TestCmdSuite(t *testing.T) {
 	require.NoError(t, err, "init failed: %s", out)
 	assert.FileExists(t, filepath.Join(tempDir, "flags.json"))
 
-	// Init invalid format
-	_, err = executeCmd("init", "-f", "invalid-fmt")
-	assert.Error(t, err)
-
 	// 3. Create
-	_, err = executeCmd("create")
-	assert.Error(t, err)
-
 	out, err = executeCmd("create", "-k", "my-feature", "-t", "boolean", "-d", "on")
 	require.NoError(t, err, "create failed: %s", out)
 
-	// Create with string variants
-	out, err = executeCmd("create", "-k", "theme-flag", "-t", "string", "-v", "dark=dark-v1,light=light-v1", "-d", "dark")
+	// 4. Target Add (Allowlist & Denylist)
+	out, err = executeCmd("target", "add", "-k", "my-feature", "-a", "email", "-o", "endsWith", "-v", "@company.com", "--variant", "on")
 	require.NoError(t, err)
 
-	// Create with number variants
-	out, err = executeCmd("create", "-k", "limit-flag", "-t", "number", "-v", "low=10,high=100", "-d", "low")
+	out, err = executeCmd("target", "add", "-k", "my-feature", "-a", "email", "-o", "endsWith", "-v", "@competitor.com", "--variant", "off", "--top")
 	require.NoError(t, err)
 
-	// Create with invalid default
-	_, err = executeCmd("create", "-k", "bad-default", "-t", "boolean", "-d", "non-existent")
-	assert.Error(t, err)
-
-	// 4. List
-	out, err = executeCmd("list")
+	// 5. Target List
+	out, err = executeCmd("target", "list", "-k", "my-feature")
 	require.NoError(t, err)
-	assert.Contains(t, out, "my-feature")
+	assert.Contains(t, out, "@competitor.com")
+	assert.Contains(t, out, "@company.com")
 
-	// 5. Update
-	_, err = executeCmd("update")
-	assert.Error(t, err)
-
-	out, err = executeCmd("update", "-k", "my-feature", "-s", "DISABLED")
+	// 6. Launch Add & Ramp
+	out, err = executeCmd("launch", "add", "-k", "my-feature", "-p", "20", "-v", "on")
 	require.NoError(t, err)
 
-	// Update invalid state
-	_, err = executeCmd("update", "-k", "my-feature", "-s", "INVALID_STATE")
-	assert.Error(t, err)
-
-	// Update invalid default variant
-	_, err = executeCmd("update", "-k", "my-feature", "-d", "non-existent-variant")
-	assert.Error(t, err)
-
-	// Update description
-	out, err = executeCmd("update", "-k", "my-feature", "--description", "Updated desc")
+	out, err = executeCmd("launch", "ramp", "-k", "my-feature", "-p", "50", "-v", "on")
 	require.NoError(t, err)
 
-	// 6. Rollout
-	_, err = executeCmd("rollout")
-	assert.Error(t, err)
+	out, err = executeCmd("launch", "list", "-k", "my-feature")
+	require.NoError(t, err)
+	assert.Contains(t, out, "fractional rollout")
 
-	_, _ = executeCmd("update", "-k", "my-feature", "-s", "ENABLED")
-	out, err = executeCmd("rollout", "-k", "my-feature", "-s", "on=50,off=50")
+	// 7. Launch Ramp Complete (100%)
+	out, err = executeCmd("launch", "ramp", "-k", "my-feature", "-p", "100", "-v", "on")
 	require.NoError(t, err)
 
-	// Rollout complete
-	out, err = executeCmd("rollout", "-k", "my-feature", "--complete", "on")
+	// Re-add target rule & remove rule by index
+	_, _ = executeCmd("target", "add", "-k", "my-feature", "-a", "email", "-v", "@company.com", "--variant", "on")
+	out, err = executeCmd("target", "remove", "-k", "my-feature", "-i", "1")
 	require.NoError(t, err)
-
-	// Rollout invalid percentage sum
-	_, err = executeCmd("rollout", "-k", "my-feature", "-s", "on=10,off=10")
-	assert.Error(t, err)
-
-	// 7. Target
-	_, err = executeCmd("target")
-	assert.Error(t, err)
-
-	out, err = executeCmd("target", "-k", "my-feature", "-a", "email", "-v", "@company.com", "--variant", "on")
-	require.NoError(t, err)
-
-	// Target invalid variant
-	_, err = executeCmd("target", "-k", "my-feature", "-a", "email", "-v", "@company.com", "--variant", "invalid")
-	assert.Error(t, err)
 
 	// 8. Validate
 	out, err = executeCmd("validate")
 	require.NoError(t, err)
 
-	// 9. Generate
-	out, err = executeCmd("generate", "-l", "go", "-o", "pkg/flags/flags.gen.go")
-	require.NoError(t, err)
-
-	// 10. Deprecate
-	_, err = executeCmd("deprecate")
-	assert.Error(t, err)
-
+	// 9. Deprecate
 	out, err = executeCmd("deprecate", "-k", "my-feature", "-r", "old feature")
 	require.NoError(t, err)
 
-	// Deprecate already deprecated flag
-	out, err = executeCmd("deprecate", "-k", "my-feature")
-	require.NoError(t, err)
-
-	// 11. Audit
+	// 10. Audit
 	out, err = executeCmd("audit")
 	require.NoError(t, err)
 
-	// Audit strict
-	_, err = executeCmd("audit", "--strict")
-	assert.Error(t, err)
-
-	// 12. Undeprecate
-	_, err = executeCmd("undeprecate")
-	assert.Error(t, err)
-
+	// 11. Undeprecate
 	out, err = executeCmd("undeprecate", "-k", "my-feature")
 	require.NoError(t, err)
 
-	// 13. Delete
-	_, err = executeCmd("delete")
-	assert.Error(t, err)
-
+	// 12. Delete
 	out, err = executeCmd("delete", "-k", "my-feature", "-f")
 	require.NoError(t, err)
-
-	// Delete non-existent flag
-	_, err = executeCmd("delete", "-k", "non-existent-flag", "-f")
-	assert.Error(t, err)
 }

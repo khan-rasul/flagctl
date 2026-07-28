@@ -9,12 +9,10 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "flagctl",
-	Short: "flagctl is a CLI tool to manage flagd feature flag configurations in Git",
-	Long: `flagctl manages the lifecycle of flagd feature flags (create, update, rollout, target, deprecate, delete, validate, audit, generate)
-directly in your repository's flags.json / flags.yaml configuration files adhering strictly to the flagd schema.`,
+	Short: "flagctl is a CLI tool for managing flagd feature flag configurations in Git",
+	Long:  `flagctl provides a declarative, GitOps-first command line interface to create, update, launch, target, deprecate, delete, validate, audit, and generate feature flag code accessors for flagd.`,
 }
 
-// Execute runs the root CLI command.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -25,7 +23,7 @@ func Execute() {
 func init() {
 	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(createCmd)
-	rootCmd.AddCommand(rolloutCmd)
+	rootCmd.AddCommand(launchCmd)
 	rootCmd.AddCommand(targetCmd)
 	rootCmd.AddCommand(updateCmd)
 	rootCmd.AddCommand(deprecateCmd)
