@@ -10,7 +10,7 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "flagctl",
 	Short: "flagctl is a CLI tool for managing flagd feature flag configurations in Git",
-	Long:  `flagctl provides a declarative, GitOps-first command line interface to create, update, launch, target, deprecate, delete, validate, audit, and generate feature flag code accessors for flagd.`,
+	Long:  `flagctl provides an ergonomic command line interface to create, update, launch, target, deprecate, delete, validate, audit, and generate feature flag code accessors for flagd GitOps workflows.`,
 }
 
 func Execute() {

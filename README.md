@@ -2,7 +2,7 @@
 
 # `flagctl`
 
-### Declarative GitOps Feature Flag Management CLI for **flagd** & **OpenFeature**
+### Ergonomic CLI for **flagd** & **OpenFeature** GitOps Feature Flag Workflows
 
 [![Go Version](https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat&logo=go)](https://go.dev/)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)

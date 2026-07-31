@@ -20,8 +20,8 @@ Type "export PATH=$PATH:/Users/rasulkhan/projects/flagd/bin" Enter
 Type "clear" Enter
 Show
 
-# --- STEP 1: Initialize Flagd Workspace ---
-Type "# 1. Initialize GitOps flagd workspace" Enter
+# --- STEP 1: Initialize Flagctl Workspace ---
+Type "# 1. Initialize flagctl workspace" Enter
 Sleep 500ms
 Type "flagctl init --language typescript" Enter
 Sleep 2s

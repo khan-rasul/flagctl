@@ -20,7 +20,7 @@ var (
 
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Initialize a flagd workspace and configuration file (idempotent)",
+	Short: "Initialize a flagctl workspace and flagd configuration file (idempotent)",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cwd, err := os.Getwd()
 		if err != nil {
